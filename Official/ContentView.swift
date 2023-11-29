@@ -8,54 +8,120 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
 
+struct ContentView: View {
+    struct Item: Identifiable {
+        let name: String
+        let id = UUID()
+        var isSelected: Bool = false
+    }
+    
+    @State private var items: [Item] = []
+    @State private var newName: String = ""
+    @State private var isAddSheetPresented = false
+    
+    @State private var selectedItemId: UUID?
+    
     var body: some View {
-        NavigationSplitView {
+        VStack {
+            HStack {
+                Text("Rooms")
+                    .font(.title)
+                    .padding(.leading, 16)
+                
+                Spacer()
+                
+                Menu {
+                    // Button("Delete", action: delete)
+                    Button("Add", action: {
+                        isAddSheetPresented = true
+                    })
+                } label: {
+                    Image(systemName: "gear")
+                        .imageScale(.large)
+                }
+                .padding(.trailing, 16)
+            }
+            .padding(.bottom, 8)
+            
             List {
                 ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                    VStack {
+                        Spacer()
+                        NavigationLink(
+                            destination: Text("Details for \(item.name)"),
+                            tag: item.id,
+                            selection: $selectedItemId
+                        ){
+                            EmptyView()
+                        }
+                        .hidden()
+                        
+                        Button(action: {
+                            toggleSelection(for: item)
+                        }) {
+                            Text(item.name)
+                                .padding(.vertical, 8)
+                        }
+                        .frame(width: 300, height: 100)
+                        .background(item.isSelected ? Color.blue : Color.clear)
+                        Spacer()
                     }
                 }
-                .onDelete(perform: deleteItems)
+                .onDelete(perform: delete)
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+            .listStyle(PlainListStyle())
+        }
+        .sheet(isPresented: $isAddSheetPresented) {
+            AddItemSheet { newName in
+                withAnimation {
+                    let newItem = Item(name: newName)
+                    items.insert(newItem, at: 0)
+                    
+                    selectedItemId = newItem.id
                 }
             }
-        } detail: {
-            Text("Select an item")
+        }
+        .navigationTitle("List")
+        .navigationBarItems(trailing: EditButton())
+    }
+    
+    private func delete(at offsets: IndexSet) {
+        withAnimation {
+            items.remove(atOffsets: offsets)
         }
     }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
+    
+    private func toggleSelection(for item: Item) {
+        if let index = items.firstIndex(where: { $0.id == item.id }) {
+            items[index].isSelected.toggle()
         }
     }
 }
-
-#Preview {
-    ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
-}
+    struct AddItemSheet: View {
+        @State private var newName:String = ""
+        @Environment(\.presentationMode) var presentationMode
+        var onAdd: (String) -> Void
+        
+        var body: some View {
+            NavigationView {
+                Form {
+                    Section(header: Text("New Item Name ")) {
+                        TextField("Enter Name", text: $newName)
+                    }
+                }
+                .navigationTitle("Add Item")
+                .navigationBarItems(
+                    trailing: Button("Done") {
+                        onAdd(newName)
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                )
+            }
+        }
+    }
+    
+    #Preview {
+        ContentView()
+            .modelContainer(for: Item.self, inMemory: true)
+    }
