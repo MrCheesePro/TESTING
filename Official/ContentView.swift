@@ -7,7 +7,7 @@
 
 import SwiftUI
 import SwiftData
-
+import AVFoundation
 
 struct ContentView: View {
     struct Item: Identifiable {
@@ -32,13 +32,14 @@ struct ContentView: View {
                 Spacer()
                 
                 Menu {
-                    // Button("Delete", action: delete)
+                    // Button("Add", action: add)
                     Button("Add", action: {
                         isAddSheetPresented = true
                     })
                 } label: {
-                    Image(systemName: "gear")
+                    Image(systemName: "ellipsis.circle")
                         .imageScale(.large)
+                        .foregroundColor(.gray)
                 }
                 .padding(.trailing, 16)
             }
@@ -84,6 +85,52 @@ struct ContentView: View {
         }
         .navigationTitle("List")
         .navigationBarItems(trailing: EditButton())
+        
+        HStack(spacing: 35) {
+            
+            NavigationLink(destination: ScreenView()) {
+                Image(systemName: "cart.badge.plus")
+                    .imageScale(.large)
+                    .foregroundColor(.gray)
+            }
+            
+            Menu {
+                // Button("Dashboard", action: dashboard)
+                Button("Dashboard", action: {
+                    // Need
+                })
+            } label: {
+                Image(systemName: "squares.leading.rectangle.fill")
+                    .imageScale(.large)
+                    .foregroundColor(.gray)
+                Text("Dashboard")
+                    .foregroundColor(.gray)
+            }
+            
+            Menu {
+                // Button("Upload", action: upload)
+                Button("Upload", action: {
+                    // Need
+                })
+            } label: {
+                Image(systemName: "icloud.and.arrow.down")
+                    .imageScale(.large)
+                    .foregroundColor(.gray)
+            }
+
+            Menu {
+                // Button("Delete", action: delete)
+                Button("Settings", action: {
+                    // Need
+                })
+            } label: {
+                Image(systemName: "gear")
+                    .imageScale(.large)
+                    .foregroundColor(.gray)
+            }
+            .padding(.trailing, 16)
+        }
+        .padding(.bottom, 8)
     }
     
     private func delete(at offsets: IndexSet) {
@@ -120,6 +167,15 @@ struct ContentView: View {
             }
         }
     }
+
+    struct ShoppingScreenView: View {
+        var body: some View {
+            Text("This is the shopping screen!")
+                .padding()
+                .navigationTitle("Shopping")
+        }
+    }
+
     
     #Preview {
         ContentView()
