@@ -7,6 +7,8 @@
 
 import SwiftUI
 import SwiftData
+import UIKit
+import RealityKit
 import AVFoundation
 
 struct ContentView: View {
